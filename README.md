@@ -6,6 +6,20 @@ with GPU support. The container is configured to provide an enhanced
 development experience with LunaVim as the editor, integrated for better code
 management and editing in C, C++, and Python.
 
+## Motivation
+
+On some linux distributions it is hard (if not nearly possible) to keep 
+all dependencies well resolved for **Tensor Tow**. To let the host use still
+the newest NVIDIA drivers (including CUDA),this docker image provides even
+the beginners with a working environment to startup fast GPU-based tensor flow
+calculations. 
+
+The docker image is based on:
+
+- Ubuntu 22.04
+- CUDA 12.3.0 
+- Lib Tensor Flow C/C++ 2.16.1
+
 ## Features
 
 - GPU Support: Optimized for leveraging GPUs with TensorFlow to enhance
