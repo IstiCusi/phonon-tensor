@@ -3,7 +3,7 @@
 Welcome to the IstiCusi/phonon-tensor repository! This Docker scripts are
 designed to facilitate the development and execution of TensorFlow applications
 with GPU support. The container is configured to provide an enhanced
-development experience with LunaVim as the editor, integrated for better code
+development experience with LunarVim as the editor, integrated for better code
 management and editing in C, C++, and Python.
 
 ## Motivation
@@ -24,7 +24,7 @@ The docker image is based on:
 
 - GPU Support: Optimized for leveraging GPUs with TensorFlow to enhance
   performance for machine learning tasks.
-- LunaVim Integration: A Neovim-based development environment set up to improve
+- LunarVim Integration: A Neovim-based development environment set up to improve
   productivity and user experience for developers.
 - Pre-configured Templates: Includes setups for C, C++, and Python located at
   `/docker/templates/c/`, `/docker/templates/cpp/`,
@@ -84,7 +84,7 @@ access your working files on the host. Be aware, that the docker runs under
 it's own root access (not of your machine clearly). files build by it are owned
 by the root of the docker container.
 
-### Start the lunavim
+### Start the LunarVim
 
 For easy access, you can simple start the lunarvim ide with `vv`. It provides
 complete python, c and c++ syntax completion.
@@ -115,15 +115,15 @@ available under the Apache License 2.0. We extend our thanks to the TensorFlow
 community for developing and maintaining such a powerful tool. More information
 about TensorFlow and its license can be found at <https://www.tensorflow.org>.
 
-### LunaVim: LunaVim, a configuration framework for Neovim, is integrated into
+### LunarVim: LunarVim, a configuration framework for Neovim, is integrated into
 
 our development environment to enhance productivity and usability for coding.
-LunaVim is built on top of Neovim and is freely available under the open-source
-license. We thank the LunaVim and Neovim teams for providing such a versatile
-and powerful tool for developers. Further details about LunaVim and its
+LunarVim is built on top of Neovim and is freely available under the open-source
+license. We thank the LunarVim and Neovim teams for providing such a versatile
+and powerful tool for developers. Further details about LunarVim and its
 licensing can be accessed at <https://github.com/LunarVim/LunarVim>.
 
-### Neovim: As the core upon which LunaVim is built, Neovim is an extension of
+### Neovim: As the core upon which LunarVim is built, Neovim is an extension of
 
 Vim aiming to improve user experience, plugins, and GUIs. Neovim is open-source
 software and is available under the Apache License 2.0. Appreciation goes to
