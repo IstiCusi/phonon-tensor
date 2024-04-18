@@ -1,0 +1,5 @@
+-I./include
+-I./include/tensorflow/c
+-I./include/tensorflow/c/eager
+-I./include/tsl/c
+

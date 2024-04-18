@@ -1,0 +1,89 @@
+FROM nvidia/cuda:12.3.0-base-ubuntu22.04 as base
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG C.UTF-8
+
+COPY setup.sources.sh /setup.sources.sh
+COPY setup.packages.sh /setup.packages.sh
+COPY gpu.packages.txt /gpu.packages.txt
+RUN /setup.sources.sh
+RUN /setup.packages.sh /gpu.packages.txt
+
+ARG PYTHON_VERSION=python3.11
+ARG TENSORFLOW_PACKAGE=tf-nightly
+COPY setup.python.sh /setup.python.sh
+COPY gpu.requirements.txt /gpu.requirements.txt
+RUN /setup.python.sh $PYTHON_VERSION /gpu.requirements.txt
+RUN pip install --no-cache-dir ${TENSORFLOW_PACKAGE} 
+
+COPY setup.cuda.sh /setup.cuda.sh
+RUN /setup.cuda.sh
+
+COPY bashrc /etc/bash.bashrc
+RUN chmod a+rwx /etc/bash.bashrc
+
+FROM base as jupyter
+
+COPY jupyter.requirements.txt /jupyter.requirements.txt
+COPY setup.jupyter.sh /setup.jupyter.sh
+RUN python3 -m pip install --no-cache-dir -r /jupyter.requirements.txt -U
+RUN /setup.jupyter.sh
+COPY jupyter.readme.md /tf/tensorflow-tutorials/README.md
+
+WORKDIR /tf
+EXPOSE 8888
+
+CMD ["bash", "-c", "source /etc/bash.bashrc && jupyter notebook --notebook-dir=/tf --ip 0.0.0.0 --no-browser --allow-root"]
+
+FROM base as test
+
+RUN ls /usr/lib/python3/dist-packages/ | grep apt_pkg
+RUN ln -s /usr/lib/python3/dist-packages/apt_pkg.cpython-310-x86_64-linux-gnu.so /usr/lib/python3/dist-packages/apt_pkg.so
+
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    python3-apt
+RUN apt-get install -y python3 python3-pip python3-setuptools
+RUN apt-get install -y python3-software-properties
+
+RUN apt-get install -y git
+
+RUN curl -LO https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linux64.tar.gz \
+    && mkdir -p /opt/nvim \
+    && tar -C /opt/nvim --strip-components=1 -xzf nvim-linux64.tar.gz \
+    && rm nvim-linux64.tar.gz
+RUN ln -s /opt/nvim/bin/nvim /usr/bin/nvim
+
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+RUN apt-get update && apt-get install -y nodejs
+RUN node -v
+RUN npm -v
+RUN npm install -g pyright
+RUN npm install -g clangd
+
+RUN nvim --version
+RUN ls -l /usr/bin/nvim
+RUN apt-get update && apt-get install -y bash
+
+RUN mkdir -p /root/.config/nvim && touch /root/.config/nvim/init.lua
+RUN mkdir -p /root/.config/lvim && touch /root/.config/lvim/config.lua
+COPY ./config.lua /root/.config/lvim/config.lua
+
+RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(curl -s https://raw.githubusercontent.com/LunarVim/LunarVim/release-1.3/neovim-0.9/utils/installer/install.sh)"
+RUN echo "alias vv='/root/.local/bin/lvim'" >> /root/.bashrc
+
+RUN apt-get install -y xclip
+RUN apt-get install -y make
+RUN apt-get install -y ncurses-dev
+
+RUN mkdir /home/phonon/
+RUN mkdir /home/phonon/templates
+RUN mkdir /home/phonon/workingdir
+
+WORKDIR /home/phonon
+COPY ./templates /home/phonon/templates
+
+ENV CUDA_HOME=/usr/local/cuda-12.3
+ENV PATH=$CUDA_HOME/bin:$PATH
+ENV LD_LIBRARY_PATH=$CUDA_HOME/targets/x86_64-linux/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+
+# vim: ft=dockerfile
