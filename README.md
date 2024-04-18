@@ -153,4 +153,5 @@ experience. For more information about Neovim and its licensing, visit
 - extension of the template library and an example library 
 - explanation of the docker preliminaries for rookies
 - better direct one button, one copy, one click installation (maybe including preliminaries)
+- Add zsh and oh-my-zsh support to the image
 
