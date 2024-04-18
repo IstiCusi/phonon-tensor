@@ -130,3 +130,13 @@ software and is available under the Apache License 2.0. Appreciation goes to
 the Neovim community for their continuous efforts in improving the developer
 experience. For more information about Neovim and its licensing, visit
 <https://neovim.io>.
+
+## TODOs
+
+- The jupyter support is not working and port 8888 needs to be handed to the host
+- docker container could be potentially added to github. 
+- de-installer script
+- extension of the template library and an example library 
+- explanation of the docker preliminaries for rookies
+- better direct one button, one copy, one click installation (maybe including preliminaries)
+
