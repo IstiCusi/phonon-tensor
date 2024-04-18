@@ -9,8 +9,8 @@ management and editing in C, C++, and Python.
 ## Motivation
 
 On some linux distributions it is hard (if not nearly possible) to keep 
-all dependencies well resolved for **Tensor Tow**. To let the host use still
-the newest NVIDIA drivers (including CUDA),this docker image provides even
+all dependencies well resolved for **Tensor Flow**. To let the host use still
+the newest NVIDIA drivers (including CUDA), this docker image provides even
 the beginners with a working environment to startup fast GPU-based tensor flow
 calculations. 
 
