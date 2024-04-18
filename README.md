@@ -45,10 +45,10 @@ functionalities.
 ## Startup
 
 - To start an interactive TensorFlow GPU session using the container, simply
-  run: tensor
+  run: `tensor`
 
 - To execute a Python script that utilizes TensorFlow within this environment,
-  use: tensor path/to/your_script.py
+  use: `tensor <file>`
 
 ## Uninstallation
 
