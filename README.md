@@ -20,6 +20,18 @@ The docker image is based on:
 - CUDA 12.3.0 
 - Lib Tensor Flow C/C++ 2.16.1
 
+## Prerequisites on the Host
+
+To ensure smooth setup and operation of the Docker environment, the host machine needs to meet the following requirements:
+
+- **Operating System**: The host must be a Linux-based system, as the scripts and configurations are specifically tailored for Linux.
+- **Docker**: Docker must be installed to create and manage the containerized environment. This allows for the isolation of the TensorFlow setup and its dependencies.
+- **wget**: Required for fetching files and resources over the network. Ensure wget is installed to handle downloads within the scripts.
+- **git**: Necessary for cloning the repository and managing version control. Ensure git is installed to access the latest updates and script versions.
+- **internet access**: You need a good internet connection, so that packages can be downloaded by the docker file
+
+Make sure these tools are installed and properly configured before proceeding with the setup.
+
 ## Features
 
 - GPU Support: Optimized for leveraging GPUs with TensorFlow to enhance
