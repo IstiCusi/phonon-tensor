@@ -115,6 +115,41 @@ grateful to these projects and their contributors for their open-source
 commitments and encourage users to comply with the respective licenses if they
 use these tools in their own projects.
 
+## Workaround for one NUMA node only
+
+NUMA stands for Non-Uniform Memory Access, a computer memory design 
+used in multiprocessors where the memory access time depends on the 
+memory location relative to a processor. In NUMA, the system memory 
+is divided into various nodes. Each node is closely associated with 
+a specific set of CPUs or processors, which forms its local memory. 
+Accessing memory local to a node is faster than non-local memory 
+(memory local to another processor or node). This architecture 
+helps in optimizing the performance of applications by 
+minimizing memory latency.
+
+In some cases, software that interacts with hardware directly, such 
+as TensorFlow with CUDA for GPU-accelerated operations, might log 
+repeated messages about NUMA configuration, especially if it encounters 
+anomalies or default settings that don't match its expectations. 
+One commonly observed message is about negative NUMA node values being 
+read, which should not typically happen as there must be at least one NUMA node.
+
+The command:
+
+```bash
+for a in /sys/bus/pci/devices/*; do echo 0 | sudo tee -a $a/numa_node; done
+```
+
+on the **host** (in the docker clearly this cannot be done, because it is not
+real root of the system) informs the system, but there needs to be ine node
+present. This suppresses on such machines the annoying warning messages when
+you are running tensor flow. 
+
+Use this caution -- the setting is not permanent and is considered in general
+as save, but you never know. 
+
+The idea doing so is done by yodi (<yodiw.com>)
+
 ## Legal Section
 
 This project makes use of several external tools and libraries, and we wish to
