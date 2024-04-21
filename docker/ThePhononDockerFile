@@ -1,25 +1,65 @@
+# ----------------------------------------------------------------------------
+# ----------- Installs the Nightly Build of Tensor Flow For Python -----------
+# ----------------------------------------------------------------------------
+
 FROM nvidia/cuda:12.3.0-base-ubuntu22.04 as base
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG C.UTF-8
 
+
+# ---------------------- I am also a server for jupyter ----------------------
+
+EXPOSE 8888
+
+
+# ------------ Upload scripts and item lists for cuda installation ------------
+
+# Uploads the CUDA Key Registration script
 COPY setup.sources.sh /setup.sources.sh
+# Uploades the package installation function script (arg: list of packges) 
 COPY setup.packages.sh /setup.packages.sh
+# Uploads the list of packages to install (cuda related)
 COPY gpu.packages.txt /gpu.packages.txt
+
+
+# -------------- Executes uploaded scripts for CUDA installation --------------
+
+# Registers the nvidia keys and installes gpg tools 
 RUN /setup.sources.sh
+# Installs the cuda package list using apt 
 RUN /setup.packages.sh /gpu.packages.txt
+
+
+# ----------- Definition of the python and tensor flow requirements -----------
 
 ARG PYTHON_VERSION=python3.11
 ARG TENSORFLOW_PACKAGE=tf-nightly
+
+
+# -------------------- Installation of python environment --------------------
+
+# Uploads python installer 
+# (uses setup-packages for apt' venv, distutils and python and pip' gpu requirments)
 COPY setup.python.sh /setup.python.sh
+# Uploads gpu.requirements (empty)
 COPY gpu.requirements.txt /gpu.requirements.txt
+# Installs as explained abovde
 RUN /setup.python.sh $PYTHON_VERSION /gpu.requirements.txt
+
+# Installs python tensor flow
 RUN pip install --no-cache-dir ${TENSORFLOW_PACKAGE} 
 
+# Cleans up unnecessary cuda libs and places dl to place seen by tensorflow
 COPY setup.cuda.sh /setup.cuda.sh
 RUN /setup.cuda.sh
 
+# TODO Probably a bug of tensorgrid -- shoulbe be maybe loaded first.
+# setup.python.sh tries to load .bashrc ? Why ... is this in the /root ?
+
 COPY bashrc /etc/bash.bashrc
 RUN chmod a+rwx /etc/bash.bashrc
+
+# -------------------- Installation of python environment --------------------
 
 FROM base as jupyter
 
@@ -29,12 +69,10 @@ RUN python3 -m pip install --no-cache-dir -r /jupyter.requirements.txt -U
 RUN /setup.jupyter.sh
 COPY jupyter.readme.md /tf/tensorflow-tutorials/README.md
 
-WORKDIR /tf
-EXPOSE 8888
-
 CMD ["bash", "-c", "source /etc/bash.bashrc && jupyter notebook --notebook-dir=/tf --ip 0.0.0.0 --no-browser --allow-root"]
 
-FROM base as test
+FROM base as commandlinetool
+
 
 RUN ls /usr/lib/python3/dist-packages/ | grep apt_pkg
 RUN ln -s /usr/lib/python3/dist-packages/apt_pkg.cpython-310-x86_64-linux-gnu.so /usr/lib/python3/dist-packages/apt_pkg.so
@@ -45,13 +83,20 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get install -y python3 python3-pip python3-setuptools
 RUN apt-get install -y python3-software-properties
 
+RUN apt-get update
 RUN apt-get install -y git
+
+
+# -------- Install neovim in stable release as necessary for Lunarvim  --------
 
 RUN curl -LO https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linux64.tar.gz \
     && mkdir -p /opt/nvim \
     && tar -C /opt/nvim --strip-components=1 -xzf nvim-linux64.tar.gz \
     && rm nvim-linux64.tar.gz
 RUN ln -s /opt/nvim/bin/nvim /usr/bin/nvim
+
+
+# ------------------ Intall npm as needed for Lunarvim Lsps  ------------------
 
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get update && apt-get install -y nodejs
@@ -60,30 +105,60 @@ RUN npm -v
 RUN npm install -g pyright
 RUN npm install -g clangd
 
-RUN nvim --version
-RUN ls -l /usr/bin/nvim
-RUN apt-get update && apt-get install -y bash
+
+# ---------- Provide clangd for lunarvim lsp and c tools in general ----------
+
+RUN apt-get install -y clang-15 clangd-15 clang-tidy-15
+RUN apt-get install -y make
+RUN apt-get install -y ncurses-dev
+
+# RUN apt-get update && apt-get install -y bash
+
+# ----------------- Provide basic configuration for lunarvim -----------------
 
 RUN mkdir -p /root/.config/nvim && touch /root/.config/nvim/init.lua
 RUN mkdir -p /root/.config/lvim && touch /root/.config/lvim/config.lua
 COPY ./config.lua /root/.config/lvim/config.lua
 
+
+# ----------------------------- Install lunarvim -----------------------------
+
 RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(curl -s https://raw.githubusercontent.com/LunarVim/LunarVim/release-1.3/neovim-0.9/utils/installer/install.sh)"
 RUN echo "alias vv='/root/.local/bin/lvim'" >> /root/.bashrc
 
+
+# ------- Provide clipboard managerment for neovim and lunarvim to host -------
+
 RUN apt-get install -y xclip
-RUN apt-get install -y make
-RUN apt-get install -y ncurses-dev
+
+
+# --------------------- Setup working place - map to host ---------------------
 
 RUN mkdir /home/phonon/
 RUN mkdir /home/phonon/templates
 RUN mkdir /home/phonon/workingdir
 
+
+# ------------------- Add template library to the workspace -------------------
+
 WORKDIR /home/phonon
 COPY ./templates /home/phonon/templates
+
+
+# ---------------- Install better zsh command line experience ----------------
+
+RUN apt-get install -y zsh
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+RUN zsh
+
+
+# ----------------- Setup up path and home variables for CUDA -----------------
 
 ENV CUDA_HOME=/usr/local/cuda-12.3
 ENV PATH=$CUDA_HOME/bin:$PATH
 ENV LD_LIBRARY_PATH=$CUDA_HOME/targets/x86_64-linux/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+
+
+# - Add vim statement to always let this file be recognized as docker script --
 
 # vim: ft=dockerfile

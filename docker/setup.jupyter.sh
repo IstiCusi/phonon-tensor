@@ -15,7 +15,7 @@ wget https://raw.githubusercontent.com/tensorflow/docs/master/site/en/tutorials/
 wget https://raw.githubusercontent.com/tensorflow/docs/master/site/en/tutorials/keras/text_classification.ipynb
 wget https://raw.githubusercontent.com/tensorflow/docs/master/site/en/tutorials/keras/text_classification_with_hub.ipynb
 
-apt-get autoremove -y
-apt-get remove -y wget
+# apt-get autoremove -y
+# apt-get remove -y wget
 
 python3 -m ipykernel.kernelspec

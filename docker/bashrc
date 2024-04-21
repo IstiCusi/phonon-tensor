@@ -34,6 +34,10 @@ _  /   /  __/  / / /(__  )/ /_/ /  /   _  __/   _  / / /_/ /_ |/ |/ /
 TF
 echo -e "\e[0;33m"
 
+RUN alias startserver='python -m notebook --allow-root'
+
+
+
 if [[ $EUID -eq 0 ]]; then
   cat <<WARN
 WARNING: You are running this container as root, which can cause new files in

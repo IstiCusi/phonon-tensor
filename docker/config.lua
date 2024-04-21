@@ -67,6 +67,7 @@ dap.configurations.cpp = {
 dap.configurations.c = dap.configurations.cpp
 dap.configurations.rust = dap.configurations.cpp
 
+vim.g.python3_host_prog = '/usr/bin/python3'
 
 -- ---- Custom version of go to file, that allows to create it when missing ----
 
