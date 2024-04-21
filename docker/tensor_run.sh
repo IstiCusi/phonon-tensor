@@ -1,7 +1,7 @@
 #!/bin/zsh
 function tensor() {
     local image="tensor"
-    local base_command="docker run --gpus all -it -v $(pwd):/home/phonon/workingdir -v /tmp/.X11-unix:/tmp/.X11-unix --env DISPLAY=$DISPLAY -p 8888:8888 $image"
+    local base_command="docker run --gpus all -it -v $(pwd):/home/phonon/workingdir -v /tmp/.X11-unix:/tmp/.X11-unix --env DISPLAY=$DISPLAY -p 8888:8888 -name "running_tensor" "$image"
 
     if [[ -z "$1" ]]; then
         echo "Starting Jupyter TensorFlow GPU session..."

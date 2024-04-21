@@ -14,5 +14,5 @@ model.compile(optimizer='adam', loss='mean_squared_error')
 model.fit(inputs, outputs, epochs=1000)
 
 predictions = model.predict(np.array([[7, 8]]))
-print("Vorhersage für die Addition von 7 und 8:", predictions[0][0])
+print("Predicat 7+8 = ", predictions[0][0])
 

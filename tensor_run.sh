@@ -2,7 +2,7 @@
 
 function tensor() {
     local image="tensor"
-    local base_command="docker run --gpus all -it -v $(pwd):/home/phonon/workingdir -v /tmp/.X11-unix:/tmp/.X11-unix --env DISPLAY=$DISPLAY $image"
+    local base_command="docker run -p 8888:8888 --gpus all -it -v $(pwd):/home/phonon/workingdir -v /tmp/.X11-unix:/tmp/.X11-unix --env DISPLAY=$DISPLAY $image"
 
     if [[ -z "$1" ]]; then
         echo "Starting interactive TensorFlow GPU session..."

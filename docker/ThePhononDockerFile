@@ -1,135 +1,95 @@
-# ----------------------------------------------------------------------------
-# ----------- Installs the Nightly Build of Tensor Flow For Python -----------
-# ----------------------------------------------------------------------------
-
+# -------------------------------- Base image --------------------------------
 FROM nvidia/cuda:12.3.0-base-ubuntu22.04 as base
+
+# --------------------- Prevent apt from asking questions ---------------------
 ENV DEBIAN_FRONTEND=noninteractive
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
 
-
-# ---------------------- I am also a server for jupyter ----------------------
-
-EXPOSE 8888
-
-
-# ------------ Upload scripts and item lists for cuda installation ------------
-
-# Uploads the CUDA Key Registration script
-COPY setup.sources.sh /setup.sources.sh
-# Uploades the package installation function script (arg: list of packges) 
-COPY setup.packages.sh /setup.packages.sh
-# Uploads the list of packages to install (cuda related)
-COPY gpu.packages.txt /gpu.packages.txt
-
-
-# -------------- Executes uploaded scripts for CUDA installation --------------
-
-# Registers the nvidia keys and installes gpg tools 
-RUN /setup.sources.sh
-# Installs the cuda package list using apt 
-RUN /setup.packages.sh /gpu.packages.txt
-
-
-# ----------- Definition of the python and tensor flow requirements -----------
-
-ARG PYTHON_VERSION=python3.11
-ARG TENSORFLOW_PACKAGE=tf-nightly
-
-
-# -------------------- Installation of python environment --------------------
-
-# Uploads python installer 
-# (uses setup-packages for apt' venv, distutils and python and pip' gpu requirments)
-COPY setup.python.sh /setup.python.sh
-# Uploads gpu.requirements (empty)
-COPY gpu.requirements.txt /gpu.requirements.txt
-# Installs as explained abovde
-RUN /setup.python.sh $PYTHON_VERSION /gpu.requirements.txt
-
-# Installs python tensor flow
-RUN pip install --no-cache-dir ${TENSORFLOW_PACKAGE} 
-
-# Cleans up unnecessary cuda libs and places dl to place seen by tensorflow
-COPY setup.cuda.sh /setup.cuda.sh
-RUN /setup.cuda.sh
-
-# TODO Probably a bug of tensorgrid -- shoulbe be maybe loaded first.
-# setup.python.sh tries to load .bashrc ? Why ... is this in the /root ?
-
-COPY bashrc /etc/bash.bashrc
-RUN chmod a+rwx /etc/bash.bashrc
-
-# -------------------- Installation of python environment --------------------
-
-FROM base as jupyter
-
-COPY jupyter.requirements.txt /jupyter.requirements.txt
-COPY setup.jupyter.sh /setup.jupyter.sh
-RUN python3 -m pip install --no-cache-dir -r /jupyter.requirements.txt -U
-RUN /setup.jupyter.sh
-COPY jupyter.readme.md /tf/tensorflow-tutorials/README.md
-
-CMD ["bash", "-c", "source /etc/bash.bashrc && jupyter notebook --notebook-dir=/tf --ip 0.0.0.0 --no-browser --allow-root"]
-
-FROM base as commandlinetool
-
-
-RUN ls /usr/lib/python3/dist-packages/ | grep apt_pkg
-RUN ln -s /usr/lib/python3/dist-packages/apt_pkg.cpython-310-x86_64-linux-gnu.so /usr/lib/python3/dist-packages/apt_pkg.so
-
+# ------------------ Update and install fundamental packages ------------------
 RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    python3-apt
-RUN apt-get install -y python3 python3-pip python3-setuptools
-RUN apt-get install -y python3-software-properties
+    gnupg ca-certificates wget curl \
+    git build-essential \
+    python3.11 python3.11-venv python3.11-distutils python3.11-dev \
+    python3-pip libssl-dev libffi-dev \
+    software-properties-common python3-software-properties \
+    clang-15 clangd-15 clang-tidy-15 \
+    make ncurses-dev xclip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get install -y zsh
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# --------------------------- Install cuda keyring ---------------------------
 RUN apt-get update
-RUN apt-get install -y git
+RUN apt-get install -y gnupg ca-certificates wget
 
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+RUN dpkg -i cuda-keyring_1.1-1_all.deb
 
-# -------- Install neovim in stable release as necessary for Lunarvim  --------
+# ---------------------- Install cuda related libraries  ----------------------
+RUN apt-get install -y --no-install-recommends \
+    cuda-command-line-tools-12-3 \
+    cuda-cudart-dev-12-3 \
+    cuda-nvcc-12-3 \
+    cuda-cupti-12-3 \
+    cuda-nvprune-12-3 \
+    cuda-libraries-12-3 \
+    cuda-nvrtc-12-3 \
+    libcufft-12-3 \
+    libcurand-12-3 \
+    libcusolver-12-3 \
+    libcusparse-12-3 \
+    libcublas-12-3 \
+    libcudnn8=8.9.6.50-1+cuda12.2 \
+    libnvinfer-plugin8=8.6.1.6-1+cuda12.0 \
+    libnvinfer8=8.6.1.6-1+cuda12.0 \
+    build-essential \
+    pkg-config \
+    curl \
+    software-properties-common \
+    unzip 
 
-RUN curl -LO https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linux64.tar.gz \
-    && mkdir -p /opt/nvim \
-    && tar -C /opt/nvim --strip-components=1 -xzf nvim-linux64.tar.gz \
-    && rm nvim-linux64.tar.gz
-RUN ln -s /opt/nvim/bin/nvim /usr/bin/nvim
+# ------------------ Upgrade pip and install Python packages ------------------
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir numpy pandas matplotlib scipy scikit-learn seaborn \
+    notebook jupyter tf-nightly
 
+# ---------------------------- Link CUDA libraries ----------------------------
+RUN ln -sf /usr/local/cuda-12.3/targets/x86_64-linux/lib/libcudnn.so.8 /usr/lib/x86_64-linux-gnu/libcudnn.so.8 && \
+    ln -sf /usr/local/cuda-12.3/targets/x86_64-linux/lib/libcublas.so.11 /usr/lib/x86_64-linux-gnu/libcublas.so.11 && \
+    ln -sf /usr/local/cuda-12.3/targets/x86_64-linux/lib/libcublasLt.so.11 /usr/lib/x86_64-linux-gnu/libcublasLt.so.11
 
-# ------------------ Intall npm as needed for Lunarvim Lsps  ------------------
+# ------------- Install Neovim and Node.js for NeoVim extensions -------------
+RUN curl -LO https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linux64.tar.gz && \
+    mkdir -p /opt/nvim && \
+    tar -C /opt/nvim --strip-components=1 -xzf nvim-linux64.tar.gz && \
+    ln -s /opt/nvim/bin/nvim /usr/bin/nvim && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g pyright clangd
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-RUN apt-get update && apt-get install -y nodejs
-RUN node -v
-RUN npm -v
-RUN npm install -g pyright
-RUN npm install -g clangd
-
-
-# ---------- Provide clangd for lunarvim lsp and c tools in general ----------
-
-RUN apt-get install -y clang-15 clangd-15 clang-tidy-15
-RUN apt-get install -y make
-RUN apt-get install -y ncurses-dev
-
-# RUN apt-get update && apt-get install -y bash
-
-# ----------------- Provide basic configuration for lunarvim -----------------
+# ----------------------------- Install LunarVim -----------------------------
 
 RUN mkdir -p /root/.config/nvim && touch /root/.config/nvim/init.lua
 RUN mkdir -p /root/.config/lvim && touch /root/.config/lvim/config.lua
 COPY ./config.lua /root/.config/lvim/config.lua
 
+COPY ./lunarvim.sh ./.lunarvim.sh
+RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(curl -s https://raw.githubusercontent.com/LunarVim/LunarVim/release-1.3/neovim-0.9/utils/installer/install.sh)" && \
+    echo "alias vv='/root/.local/bin/lvim'" >> /root/.bashrc
+# RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(./lunarvim.sh)" && \
 
-# ----------------------------- Install lunarvim -----------------------------
 
-RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(curl -s https://raw.githubusercontent.com/LunarVim/LunarVim/release-1.3/neovim-0.9/utils/installer/install.sh)"
+
 RUN echo "alias vv='/root/.local/bin/lvim'" >> /root/.bashrc
 
-
-# ------- Provide clipboard managerment for neovim and lunarvim to host -------
-
-RUN apt-get install -y xclip
+# ---------------------- Jupyter Notebook configuration ----------------------
+RUN jupyter notebook --generate-config && \
+    echo "c.NotebookApp.ip = '0.0.0.0'" >> ~/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.port = 8888" >> ~/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.open_browser = False" >> ~/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.allow_root = True" >> ~/.jupyter/jupyter_notebook_config.py
 
 
 # --------------------- Setup working place - map to host ---------------------
@@ -138,6 +98,15 @@ RUN mkdir /home/phonon/
 RUN mkdir /home/phonon/templates
 RUN mkdir /home/phonon/workingdir
 
+RUN mkdir -p /home/phonon/tensorflow-tutorials && \
+    cd /home/phonon/tensorflow-tutorials && \
+    wget https://raw.githubusercontent.com/tensorflow/docs/master/site/en/tutorials/keras/classification.ipynb && \
+    wget https://raw.githubusercontent.com/tensorflow/docs/master/site/en/tutorials/keras/overfit_and_underfit.ipynb && \
+    wget https://raw.githubusercontent.com/tensorflow/docs/master/site/en/tutorials/keras/regression.ipynb && \
+    wget https://raw.githubusercontent.com/tensorflow/docs/master/site/en/tutorials/keras/save_and_load.ipynb && \
+    wget https://raw.githubusercontent.com/tensorflow/docs/master/site/en/tutorials/keras/text_classification.ipynb && \
+    wget https://raw.githubusercontent.com/tensorflow/docs/master/site/en/tutorials/keras/text_classification_with_hub.ipynb
+
 
 # ------------------- Add template library to the workspace -------------------
 
@@ -145,20 +114,19 @@ WORKDIR /home/phonon
 COPY ./templates /home/phonon/templates
 
 
-# ---------------- Install better zsh command line experience ----------------
-
-RUN apt-get install -y zsh
-RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-RUN zsh
-
-
-# ----------------- Setup up path and home variables for CUDA -----------------
+# ------------------------ Install cuda path variables ------------------------
 
 ENV CUDA_HOME=/usr/local/cuda-12.3
 ENV PATH=$CUDA_HOME/bin:$PATH
 ENV LD_LIBRARY_PATH=$CUDA_HOME/targets/x86_64-linux/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 
+# Command to run Jupyter Notebook
+CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]
 
-# - Add vim statement to always let this file be recognized as docker script --
+# COPY start-jupyter.sh /usr/local/bin/start-jupyter.sh
+# RUN chmod +x /usr/local/bin/start-jupyter.sh
+# CMD ["/usr/local/bin/start-jupyter.sh"]
+
+# ------------------- vim filetype for syntax highlighting -------------------
 
 # vim: ft=dockerfile
