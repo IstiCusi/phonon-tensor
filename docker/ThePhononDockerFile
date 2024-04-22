@@ -85,7 +85,7 @@ COPY ./config.lua /root/.config/lvim/config.lua
 COPY ./lunarvim.sh ./.lunarvim.sh
 RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(curl -s https://raw.githubusercontent.com/LunarVim/LunarVim/release-1.3/neovim-0.9/utils/installer/install.sh)" && \
     echo "alias vv='/root/.local/bin/lvim'" >> /root/.bashrc
-# RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(./lunarvim.sh)" && \
+# RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(cat ./lunarvim.sh)" && \
 
 RUN echo "alias vv='/root/.local/bin/lvim'" >> /root/.bashrc
 
@@ -102,7 +102,6 @@ RUN jupyter notebook --generate-config && \
     echo "c.NotebookApp.allow_root = True" >> ~/.jupyter/jupyter_notebook_config.py
 
 # --------------------- Setup working place - map to host ---------------------
-
 RUN mkdir /home/phonon/
 RUN mkdir /home/phonon/templates
 RUN mkdir /home/phonon/workingdir
@@ -117,12 +116,10 @@ RUN mkdir -p /home/phonon/tensorflow-tutorials && \
     wget https://raw.githubusercontent.com/tensorflow/docs/master/site/en/tutorials/keras/text_classification_with_hub.ipynb
 
 # ------------------- Add template library to the workspace -------------------
-
 WORKDIR /home/phonon
 COPY ./templates /home/phonon/templates
 
 # ------------------------ Install cuda path variables ------------------------
-
 ENV CUDA_HOME=/usr/local/cuda-12.3
 ENV PATH=$CUDA_HOME/bin:$PATH
 ENV LD_LIBRARY_PATH=$CUDA_HOME/targets/x86_64-linux/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
@@ -135,5 +132,4 @@ CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--al
 # CMD ["/usr/local/bin/start-jupyter.sh"]
 
 # ------------------- vim filetype for syntax highlighting -------------------
-
 # vim: ft=dockerfile
