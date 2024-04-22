@@ -33,6 +33,19 @@ function SearchManPageForCurrentWord()
   vim.cmd('Man ' .. word)
 end
 
+-- Language Server Settings
+local lspconfig = require('lspconfig')
+
+-- Pyright for Python
+lspconfig['pyright'].setup{
+    -- add specific settings for pyright or leave empty
+}
+
+-- Clangd for C/C++
+lspconfig['clangd'].setup{
+    -- add specific settings for clangd or leave empty
+}
+
 -- ---------------------------- settings fuer vimwiki --------------------------
 
 vim.g.vimwiki_list = {{path = '/home/phonon/workingdir/.wiki'}}
