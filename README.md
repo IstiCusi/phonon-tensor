@@ -182,12 +182,9 @@ experience. For more information about Neovim and its licensing, visit
 
 ## TODOs
 
-- Handle host+ correctly for clipboard interaction with the host
-- The jupyter support is not working and port 8888 needs to be handed to the host
 - docker container could be potentially added to github. 
 - de-installer script
 - extension of the template library and an example library 
 - explanation of the docker preliminaries for rookies
 - better direct one button, one copy, one click installation (maybe including preliminaries)
-- Add zsh and oh-my-zsh support to the image
 
