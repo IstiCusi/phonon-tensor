@@ -29,9 +29,11 @@ function check_and_set_numa_nodes() {
 
 function tensor() {
     local image="tensor"
-    local base_command="docker run -p 8888:8888 --gpus all -it -v $(pwd):/home/phonon/workingdir -v /tmp/.X11-unix:/tmp/.X11-unix --env DISPLAY=$DISPLAY $image"
+    local base_command="docker run  -p 8888:8888 --gpus all -it -v $(pwd):/home/phonon/workingdir -v /tmp/.X11-unix:/tmp/.X11-unix --env DISPLAY=$DISPLAY $image"
 
     check_and_set_numa_nodes
+
+    xhost +local:tensor
 
     if [[ -z "$1" ]]; then
         echo "Starting interactive TensorFlow GPU session..."
@@ -46,6 +48,9 @@ function tensor() {
         echo "Running Python script '$script_path' in the TensorFlow container..."
         eval "$base_command bash -c 'cd /home/phonon/workingdir && python $script_path; exec bash'"
     fi
+
+    xhost -local:tensor
+
 }
 
 echo "Function tensor defined."

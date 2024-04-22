@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     git build-essential \
     python3.11 python3.11-venv python3.11-distutils python3.11-dev \
     python3-pip libssl-dev libffi-dev \
+    python3-tk \
     software-properties-common python3-software-properties \
     clang-15 clangd-15 clang-tidy-15 \
     make ncurses-dev xclip \
@@ -31,6 +32,10 @@ RUN update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-15 150 
 RUN apt-get update \
     && apt-get install -y python3-pip \
     && python3.11 -m pip install --upgrade pip
+
+# -------------------------- Install zsh environment --------------------------
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+COPY ./zshrc /root/.zshrc
 
 # --------------------------- Install cuda keyring ---------------------------
 RUN apt-get update
@@ -80,15 +85,10 @@ RUN curl -LO https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linu
     apt-get install -y nodejs && \
     npm install -g pyright clangd
 
-
 # ------------------------ Install tmux configurations ------------------------
 RUN git clone https://github.com/tmux-plugins/tpm /root/.tmux/plugins/tpm
 COPY ./tmux.conf /root/.tmux.conf
 RUN /root/.tmux/plugins/tpm/bin/install_plugins
-
-# -------------------------- Install zsh environment --------------------------
-
-RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # ----------------------------- Install LunarVim -----------------------------
 RUN mkdir -p /root/.config/nvim && touch /root/.config/nvim/init.lua

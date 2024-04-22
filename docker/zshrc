@@ -1,0 +1,9 @@
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="agnoster"
+plugins=(git)
+source $ZSH/oh-my-zsh.sh
+alias c='clear'
+alias ccat='pygmentize -g'
+export MANPAGER='lvim +Man! +"set nocul" +"set noshowcmd" +"set noruler" +"set noshowmode" +"set laststatus=0" +"set showtabline=0" +"set nonumber"'
+export EDITOR=vv
+
