@@ -155,8 +155,9 @@ The idea doing so is done by yodi (<yodiw.com>)
 This project makes use of several external tools and libraries, and we wish to
 acknowledge their contribution and provide information about their licenses.
 
-### TensorFlow: TensorFlow is utilized within this Docker container for its
+### TensorFlow: 
 
+TensorFlow is utilized within this Docker container for its
 powerful machine learning libraries and capabilities. TensorFlow is an
 open-source platform developed by the TensorFlow team at Google. It is
 available under the Apache License 2.0. We extend our thanks to the TensorFlow
