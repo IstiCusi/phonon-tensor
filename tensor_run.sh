@@ -35,7 +35,7 @@ function tensor() {
 
     if [[ -z "$1" ]]; then
         echo "Starting interactive TensorFlow GPU session..."
-        eval "$base_command bash"
+        eval "$base_command zsh"
     else
         local script_path=$1
         if [[ ! -f "$script_path" ]]; then

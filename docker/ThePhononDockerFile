@@ -4,6 +4,7 @@ FROM nvidia/cuda:12.3.0-base-ubuntu22.04 as base
 # --------------------- Prevent apt from asking questions ---------------------
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
+ENV TERM xterm-256color
 
 # ------------------ Update and install fundamental packages ------------------
 RUN apt-get update && apt-get install -y \
@@ -14,6 +15,8 @@ RUN apt-get update && apt-get install -y \
     software-properties-common python3-software-properties \
     clang-15 clangd-15 clang-tidy-15 \
     make ncurses-dev xclip \
+    tmux \
+    zsh \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -77,6 +80,16 @@ RUN curl -LO https://github.com/neovim/neovim/releases/download/v0.9.5/nvim-linu
     apt-get install -y nodejs && \
     npm install -g pyright clangd
 
+
+# ------------------------ Install tmux configurations ------------------------
+RUN git clone https://github.com/tmux-plugins/tpm /root/.tmux/plugins/tpm
+COPY ./tmux.conf /root/.tmux.conf
+RUN /root/.tmux/plugins/tpm/bin/install_plugins
+
+# -------------------------- Install zsh environment --------------------------
+
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
 # ----------------------------- Install LunarVim -----------------------------
 RUN mkdir -p /root/.config/nvim && touch /root/.config/nvim/init.lua
 RUN mkdir -p /root/.config/lvim && touch /root/.config/lvim/config.lua
@@ -84,14 +97,15 @@ COPY ./config.lua /root/.config/lvim/config.lua
 
 COPY ./lunarvim.sh ./.lunarvim.sh
 RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(curl -s https://raw.githubusercontent.com/LunarVim/LunarVim/release-1.3/neovim-0.9/utils/installer/install.sh)" && \
-    echo "alias vv='/root/.local/bin/lvim'" >> /root/.bashrc
-# RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(cat ./lunarvim.sh)" && \
+    echo "alias vv='/root/.local/bin/lvim'" >> /root/.bashrc \
+    echo "alias vv='/root/.local/bin/lvim'" >> /root/.zshrc 
 
-RUN echo "alias vv='/root/.local/bin/lvim'" >> /root/.bashrc
+# RUN bash -c "LV_BRANCH='release-1.3/neovim-0.9' bash <(cat ./lunarvim.sh)" && \
 
 ENV PATH="/root/.local/bin:$PATH"
 ENV USER=root
 
+RUN lvim --headless +'TSInstallSync maintained' +qall
 RUN lvim --headless +'LvimCacheReset' +qall
 
 # ---------------------- Jupyter Notebook configuration ----------------------
