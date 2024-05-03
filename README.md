@@ -187,4 +187,13 @@ experience. For more information about Neovim and its licensing, visit
 - extension of the template library and an example library 
 - explanation of the docker preliminaries for rookies
 - better direct one button, one copy, one click installation (maybe including preliminaries)
-
+- change to "host user" 
+- Add jupyter-book  for publication
+- TF_CPP_MIN_LOG_LEVEL 3?
+- Implement classes (solvers) for STDP using chem. kinetics and check how we could potentially interface this to Keras etc
+- Change nvim to nvchad / it is more practical (with better theme)
+- implement direct starter  for jupyter notebooks
+- implement  windows installers and loaders.
+- arrange home directory directly to workingdir. More userfriendly.
+- Add pyglet, manim, sympy
+- What is with Wayland -- how to handle this
