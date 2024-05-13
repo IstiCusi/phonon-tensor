@@ -1,5 +1,6 @@
 # -------------------------------- Base image --------------------------------
 FROM nvidia/cuda:12.3.0-base-ubuntu22.04 as base
+EXPOSE 8888/tcp
 
 # --------------------- Prevent apt from asking questions ---------------------
 ENV DEBIAN_FRONTEND=noninteractive
