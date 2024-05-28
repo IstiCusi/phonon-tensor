@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     python3.11 python3.11-venv python3.11-distutils python3.11-dev \
     python3-pip libssl-dev libffi-dev \
     python3-tk \
+    graphviz \
     software-properties-common python3-software-properties \
     clang-15 clangd-15 clang-tidy-15 \
     make ncurses-dev xclip \
@@ -70,7 +71,7 @@ RUN apt-get install -y --no-install-recommends \
 
 # ------------------ Upgrade pip and install Python packages ------------------
 RUN python3.11 -m pip install --upgrade pip 
-RUN python3.11 -m pip install --no-cache-dir numpy pandas matplotlib scipy scikit-learn seaborn notebook jupyter tf-nightly keras pyright
+RUN python3.11 -m pip install --no-cache-dir numpy pandas matplotlib scipy scikit-learn seaborn notebook jupyter tf-nightly keras pyright pydot
 
 # ---------------------------- Link CUDA libraries ----------------------------
 RUN ln -sf /usr/local/cuda-12.3/targets/x86_64-linux/lib/libcudnn.so.8 /usr/lib/x86_64-linux-gnu/libcudnn.so.8 && \
